@@ -25,6 +25,7 @@ Feature: A form that checks what is typed
     When I tap "Submit"
     Then the app should show the "Your story" dialog
     And the app's "Your story" dialog should show "The quick developer saw a time"
+    And the app's "Done" button in the "Your story" dialog should be enabled
     When I tap "Done" in the "Your story" dialog
     Then the app should show no dialog
     And the app's "Enter an adjective" field should be shown as valid

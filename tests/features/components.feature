@@ -7,6 +7,8 @@ Feature: Tabs, buttons and dialogs of a gallery of components
     Given I am on "/material_3_demo/"
     And the app's accessibility tree is on
 
+  # The gallery shows each button twice in one section, enabled and disabled, with nothing but the state to
+  # tell the two apart: "should be enabled" and "should be disabled" each pass on one of them.
   @critical
   Scenario: The tabs, and buttons enabled and disabled
     Then the app's "Components" tab should be selected
@@ -22,6 +24,7 @@ Feature: Tabs, buttons and dialogs of a gallery of components
     And I tap "Show dialog"
     Then the app should show the "What is a dialog?" dialog
     And the app's "What is a dialog?" dialog should show "critical information"
+    And the app's "Okay" button in the "What is a dialog?" dialog should be enabled
     When I tap "Okay" in the "What is a dialog?" dialog
     Then the app should show no dialog
 

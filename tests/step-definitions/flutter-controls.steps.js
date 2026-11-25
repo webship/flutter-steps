@@ -196,7 +196,8 @@ Then(/^the app should( not)? show the "([^"]*)" (button|link|heading|tab|checkbo
 /**
  * A control of the app is enabled or disabled (`aria-disabled`). The step waits for the state. When the
  * app shows several controls of that kind with that name (a gallery that shows each button enabled and
- * disabled), the step passes when one of them is in that state.
+ * disabled), the step passes when one of them is in that state; to say which one, name the row, group,
+ * region or dialog it sits in (the next step).
  *
  * Example #1: Then the app's "Elevated" button should be disabled
  * Example #2: Then the app's "Submit" button should be enabled
@@ -210,17 +211,78 @@ Then(/^the app's "([^"]*)" (button|link|tab|checkbox|radio button|switch|text fi
     const r = lib.findControls(a.kind, a.name);
     const states = r.refs.map((x) => lib.describe(x));
     const hit = states.find((s) => s.disabled === (a.wanted === 'disabled'));
-    return { done: !!hit, count: r.refs.length, names: r.names };
+    return { done: !!hit, count: states.length, disabled: states.filter((s) => s.disabled).length, names: r.names };
   }, { kind, name, wanted }, h.budget(this));
   if (result.done) return;
   const other = wanted === 'enabled' ? 'disabled' : 'enabled';
-  throw h.failure(this.page, !result.count
-    ? `Expected a ${kind} named "${name}" in the app's accessibility tree, but there is none.`
-    : result.count === 1
-      ? `Expected the app's ${kind} "${name}" to be ${wanted}, but it is ${other}.`
-      : `Expected one of the app's ${result.count} ${h.plural(kind)} "${name}" to be ${wanted}, but all of them are ${other}.`, {
-    found: `the ${h.plural(kind)} here: ${h.listed(result.names, 20)}`,
-    hint: 'a disabled control carries aria-disabled="true".',
+  if (!result.count) {
+    throw h.failure(this.page, `Expected a ${kind} named "${name}" in the app's accessibility tree, but there is none.`, {
+      found: `the ${h.plural(kind)} here: ${h.listed(result.names, 20)}`,
+      hint: 'a control is named by its label or its text, matched from its start.',
+    });
+  }
+  if (result.count === 1) {
+    throw h.failure(this.page, `Expected the app's ${kind} "${name}" to be ${wanted}, but it is ${other}.`, {
+      hint: 'a disabled control carries aria-disabled="true"; the app may enable it only once a form is filled in.',
+    });
+  }
+  throw h.failure(this.page, `Expected one of the app's ${result.count} ${h.plural(kind)} "${name}" to be ${wanted}, but all of them are ${other}.`, {
+    found: `${result.count} ${h.plural(kind)} named "${name}": ${result.count - result.disabled} enabled, ${result.disabled} disabled`,
+    hint: `name the row, group, region or dialog the one you mean sits in: "the app's "${name}" ${kind} in the "..." group should be ${wanted}".`,
+  });
+});
+
+/**
+ * A control of the app in a named row, group, item, region or dialog is enabled or disabled: the way to
+ * say which one when its name repeats, or to reach one that has no name of its own (then it is the only
+ * control of its kind there). There must be one such control there. The step waits for the state.
+ *
+ * Example #1: Then the app's button in the "Item 5" row should be enabled
+ * Example #2: Then the app's "Done" button in the "Your story" dialog should be enabled
+ * Example #3: And the app's "Okay" button in the "What is a dialog?" dialog should be enabled
+ * Example #4: Then the app's "Save" button in the "Profile" region should be disabled
+ * Example #5: Then the app's checkbox in the "Item 3" row should be enabled
+ */
+Then(/^the app's (?:"([^"]*)" )?(button|link|tab|checkbox|radio button|switch|text field|menu item|slider) in the "([^"]*)" (row|group|item|region|dialog) should be (enabled|disabled)$/, async function (name, kind, container, noun, wanted) {
+  await h.ensureTree(this);
+  const box = await h.poll(this, (lib, a) => {
+    const c = lib.findContainer(a.name);
+    return { done: !!c.ref, ...c };
+  }, { name: container }, h.budget(this));
+  if (!box.ref) {
+    throw h.failure(this.page, `Expected a ${noun} named "${container}" in the app's accessibility tree, but there is none.`, {
+      found: `the named rows, groups, regions and dialogs here: ${h.listed(box.names, 20)}`,
+      hint: 'a row or a group is named by its label or its first line of text, a dialog by its title, matched from its start.',
+    });
+  }
+  const named = name === undefined || name === null ? null : name;
+  const result = await h.poll(this, (lib, a) => {
+    const r = lib.findControls(a.kind, a.name, a.scope);
+    const states = r.refs.map((x) => lib.describe(x));
+    return {
+      done: states.length === 1 && states[0].disabled === (a.wanted === 'disabled'),
+      count: states.length,
+      disabled: states.filter((s) => s.disabled).length,
+      names: r.names,
+    };
+  }, { kind, name: named, scope: box.ref, wanted }, h.budget(this));
+  if (result.done) return;
+  const what = named === null ? kind : `${kind} "${named}"`;
+  const other = wanted === 'enabled' ? 'disabled' : 'enabled';
+  if (!result.count) {
+    throw h.failure(this.page, `Expected a ${what} in the "${container}" ${noun}, but there is none.`, {
+      found: `the ${h.plural(kind)} there: ${h.listed(result.names)}`,
+      hint: 'check the container: the control may be of another kind, or sit in another one.',
+    });
+  }
+  if (result.count > 1) {
+    throw h.failure(this.page, `Expected one ${what} in the "${container}" ${noun}, but there are ${result.count}: ${result.count - result.disabled} enabled, ${result.disabled} disabled.`, {
+      found: `the ${h.plural(kind)} there: ${h.listed(result.names)}`,
+      hint: 'name a row, group or region that holds only the one you mean; when none does, a screen reader tells them apart by their state alone.',
+    });
+  }
+  throw h.failure(this.page, `Expected the app's ${what} in the "${container}" ${noun} to be ${wanted}, but it is ${other}.`, {
+    hint: 'a disabled control carries aria-disabled="true"; the app may enable it only once a form is filled in.',
   });
 });
 

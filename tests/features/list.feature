@@ -23,6 +23,7 @@ Feature: A long list, its rows' buttons and the messages they bring
     And the app should not show "Item 60"
 
   Scenario: The same button adds a row, then takes it away
+    Then the app's button in the "Item 0" row should be enabled
     When I tap the button in the "Item 0" row
     Then the app should announce "Added to favorites."
     When I tap the button in the "Item 0" row

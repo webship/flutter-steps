@@ -73,3 +73,18 @@ Feature: Assertions on the app, its controls and its lists that must fail
     Fails with: Expected to see "Item 999" in the app after scrolling, but it never showed.
     Given I am on "/testing_app/"
     When I scroll the app until I see "Item 999"
+
+  Scenario: A button that repeats, none of them in that state
+    Fails with: Expected one of the app's 5 buttons "Icon" to be disabled, but all of them are enabled.
+    Given I am on "/material_3_demo/"
+    Then the app's "Icon" button should be disabled
+
+  Scenario: A button that repeats in the group it is named in
+    Fails with: Expected one button "Elevated" in the "Use ElevatedButton" group, but there are 2: 1 enabled, 1 disabled.
+    Given I am on "/material_3_demo/"
+    Then the app's "Elevated" button in the "Use ElevatedButton" group should be disabled
+
+  Scenario: A row's button in another state
+    Fails with: Expected the app's button in the "Item 0" row to be disabled, but it is enabled.
+    Given I am on "/testing_app/"
+    Then the app's button in the "Item 0" row should be disabled

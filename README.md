@@ -23,6 +23,15 @@ CI builds four sample apps for the web in a pinned Flutter SDK image (3.50.1), o
 once for WebAssembly (skwasm), serves each build, and runs the whole suite against it twice, then the assertions
 that must fail; see [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
+## Flutter releases
+
+The pack is proven on Flutter 3.50.1, on apps built for JavaScript (CanvasKit) and for WebAssembly (skwasm). Every
+assertion of a step reads the tree's ARIA roles, names and states, and the identifiers the app gives its widgets.
+To find that tree, the page side of the pack uses the engine's own elements: the host of the tree, the "Enable
+accessibility" button, the hosts of the announcements and the elements that mark a scrolling area. Those are the
+engine's, not a published contract, and may change between Flutter releases. CI pins the SDK, so a change of the
+engine shows there first, when the pin moves to a new release, before a project meets it.
+
 ## The accessibility tree, and turning it on
 
 Flutter keeps its accessibility tree off until something asks for it. Before that, the page holds the canvas and one
@@ -234,7 +243,7 @@ the steps of the pack, like any other form). `cucumber.js` lists no accounts and
 | File | Steps | Covers |
 | --- | --- | --- |
 | `flutter-app.steps.js` | 5 | The accessibility tree turned on, the wait for the app to settle, the app's route, the build it runs as (JavaScript or WebAssembly), and what the app announces to a screen reader. |
-| `flutter-controls.steps.js` | 9 | A tap on a control by its name, by its kind and name, by the named row, group or region it sits in, or by the identifier the app gives it; a checkbox checked or unchecked; a control shown or not, enabled or disabled, checked or not; a tab selected or not. |
+| `flutter-controls.steps.js` | 10 | A tap on a control by its name, by its kind and name, by the named row, group or region it sits in, or by the identifier the app gives it; a checkbox checked or unchecked; a control shown or not, enabled or disabled (also in a named row, group, region or dialog), checked or not; a tab selected or not. |
 | `flutter-text.steps.js` | 7 | A text shown or not; a field: a text entered or typed key by key, cleared, what it holds, empty, shown as valid or invalid, the message it shows. |
 | `flutter-dialogs.steps.js` | 5 | A dialog by its title: shown or not, none shown, what it shows, a control tapped in it, dismissed with Escape. |
 | `flutter-lists.steps.js` | 2 | Scrolling until a text or a control is on the screen; no unnamed buttons (or controls). |
@@ -251,9 +260,13 @@ elements that an app drawn on a canvas does not have: use this pack's steps for 
   switch, menu item, text field, slider, heading, image) and its accessible name: its label, its tooltip or its
   text. A name matches exactly, then without regard to case and spaces, then by its start; never by a part in the
   middle ("Add" never matches "Address"). A tooltip that joins a button's name after a hover ("Increment Increment")
-  still matches by the start. A text field is named by its label (its hint follows the label in its name). When the
-  app shows several controls of a kind with the same name (a gallery that shows each button enabled and disabled),
-  `should be enabled` and `should be disabled` pass when one of them is.
+  still matches by the start. A text field is named by its label (its hint follows the label in its name).
+- **A name that repeats.** When the app shows several controls of a kind with the same name (a gallery that shows
+  each button enabled and disabled), `Then the app's "Elevated" button should be disabled` passes when one of them
+  is; its failure counts them (`5 buttons named "Icon": 5 enabled, 0 disabled`). To say which one, name the row,
+  group, region or dialog it sits in: `Then the app's "Done" button in the "Your story" dialog should be enabled`
+  holds only when exactly one such control is there, and says how many there are when not. The same form reaches a
+  control without a name: `Then the app's button in the "Item 5" row should be enabled`.
 - **A dialog by its title.** Flutter gives its dialogs the role of a dialog but no name, so a step names a dialog by
   its title: the first heading or line of text in it.
 - **The states of the tree**: `aria-checked`, `aria-selected`, `aria-invalid`, `aria-disabled`, and the identifier
@@ -306,7 +319,7 @@ One example of each step; the JSDoc block above each definition holds five or mo
 - `Then the app should run as WebAssembly`
 - `Then the app should announce "Added to favorites."`
 
-### `flutter-controls.steps.js` (9)
+### `flutter-controls.steps.js` (10)
 
 - `When I tap "Increment"`
 - `When I tap the "Back" button`
@@ -315,6 +328,7 @@ One example of each step; the JSDoc block above each definition holds five or mo
 - `When I check the "I agree to the terms of service." checkbox`
 - `Then the app should show the "Increment" button`
 - `Then the app's "Elevated" button should be disabled`
+- `Then the app's button in the "Item 5" row should be enabled`
 - `Then the app's "I agree to the terms of service." checkbox should be checked`
 - `Then the app's "Components" tab should be selected`
 
