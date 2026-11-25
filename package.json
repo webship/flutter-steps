@@ -1,0 +1,69 @@
+{
+  "name": "@webship-js/flutter-steps",
+  "version": "2.0.0",
+  "description": "Cucumber step definitions for Flutter web apps, a plugin for webship-js (Playwright and Cucumber): a built app tested as a person gets it in a browser, through the accessibility tree Flutter builds for screen readers (roles, names and the identifiers the app gives its widgets), with real pointer and keyboard input, each step waiting on the app's own frames, never on a fixed time; a widget left out of that tree is reported as an accessibility finding of the app.",
+  "main": "tests/step-definitions/flutter-helpers.js",
+  "files": [
+    "tests/step-definitions/",
+    "tests/features/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "cucumber-js --config cucumber.js",
+    "test:dry": "cucumber-js --config cucumber.js --dry-run",
+    "test:examples": "node tests/check-examples.js",
+    "test:paths": "node tests/check-paths.js",
+    "test:must-fail": "node tests/check-must-fail.js",
+    "test:chromium": "BROWSER=chromium cucumber-js --config cucumber.js",
+    "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js",
+    "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
+    "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
+    "generate-reports": "generate-reports",
+    "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
+    "samples:build": "bash .github/scripts/build-samples.sh",
+    "samples:build:wasm": "bash .github/scripts/build-samples.sh --wasm",
+    "samples:serve": "python3 -I .github/scripts/serve.py samples/site 8080",
+    "samples:serve:wasm": "python3 -I .github/scripts/serve.py samples/site-wasm 8080 --isolated"
+  },
+  "keywords": [
+    "webship-js",
+    "flutter",
+    "flutter-web",
+    "accessibility",
+    "semantics",
+    "cucumber",
+    "cucumber-js",
+    "playwright",
+    "bdd",
+    "testing",
+    "e2e",
+    "gherkin"
+  ],
+  "author": "Webship.co",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webship/flutter-steps.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webship/flutter-steps/issues"
+  },
+  "homepage": "https://github.com/webship/flutter-steps#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">= 24.0"
+  },
+  "peerDependencies": {
+    "webship-js": "^2.0.16"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.0",
+    "webship-js": "^2.0.16"
+  },
+  "overrides": {
+    "@cucumber/cucumber": "^12"
+  }
+}
